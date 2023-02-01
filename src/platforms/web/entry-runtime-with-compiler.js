@@ -14,6 +14,7 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
+// DY: 重写$mount方法
 const mount = Vue.prototype.$mount
 Vue.prototype.$mount = function (
   el?: string | Element,
@@ -96,6 +97,7 @@ function getOuterHTML (el: Element): string {
   }
 }
 
+// DY: 添加Vue.compile
 Vue.compile = compileToFunctions
 
 export default Vue
