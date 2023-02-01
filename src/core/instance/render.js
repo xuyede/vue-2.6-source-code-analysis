@@ -59,6 +59,8 @@ export function setCurrentRenderingInstance (vm: Component) {
 }
 
 export function renderMixin (Vue: Class<Component>) {
+
+  // DY: 定义 installRenderHelpers里面的方法、$nextTick、_render
   // install runtime convenience helpers
   installRenderHelpers(Vue.prototype)
 

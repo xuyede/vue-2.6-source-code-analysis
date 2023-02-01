@@ -323,6 +323,8 @@ export function stateMixin (Vue: Class<Component>) {
   // flow somehow has problems with directly declared definition object
   // when using Object.defineProperty, so we have to procedurally build up
   // the object here.
+
+  // DY: dataDef、propsDef为只读属性
   const dataDef = {}
   dataDef.get = function () { return this._data }
   const propsDef = {}
@@ -339,9 +341,12 @@ export function stateMixin (Vue: Class<Component>) {
       warn(`$props is readonly.`, this)
     }
   }
+
+  // DY: 定义 $data和 $props，且为只读
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
 
+  // DY: 定义 $set、$delete、$watch
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
 
