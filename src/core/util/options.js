@@ -1,5 +1,5 @@
 /* @flow */
-
+// DY: 选项的合并
 import config from '../config'
 import { warn } from './debug'
 import { set } from '../observer/index'
@@ -283,6 +283,9 @@ export function validateComponentName (name: string) {
       'should conform to valid custom element name in html5 specification.'
     )
   }
+
+  // DY: isBuiltInTag 检测注册的组件名是否为内置的标签 slot component
+  // DY: config.isReservedTag 是否是自定义的保留标签 svg html
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component ' +
@@ -295,6 +298,7 @@ export function validateComponentName (name: string) {
  * Ensure all props option syntax are normalized into the
  * Object-based format.
  */
+// DY: 在使用props的时候，会出现不同形式的写法，如数组，对象。在该函数中处理成对象的形式
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
@@ -304,6 +308,17 @@ function normalizeProps (options: Object, vm: ?Component) {
     i = props.length
     while (i--) {
       val = props[i]
+
+      // DY: 数组的元素必须是字符串 
+      /**
+        props: ['someData']
+
+        res = {
+          someData: {
+            type: null
+          }
+        }
+      */
       if (typeof val === 'string') {
         name = camelize(val)
         res[name] = { type: null }
@@ -312,6 +327,27 @@ function normalizeProps (options: Object, vm: ?Component) {
       }
     }
   } else if (isPlainObject(props)) {
+    
+    // DY: 对象有两种写法
+    /**
+      props: {
+        someData1: Number,
+        someData2: {
+          type: number,
+          default: 1
+        }
+      }
+
+      res = {
+        someData1: {
+          type: Number
+        },
+        someData2: {
+          type: number,
+          default: 1
+        }
+      }
+    */
     for (const key in props) {
       val = props[key]
       name = camelize(key)
@@ -337,10 +373,38 @@ function normalizeInject (options: Object, vm: ?Component) {
   if (!inject) return
   const normalized = options.inject = {}
   if (Array.isArray(inject)) {
+    // DY: inject使用数组接收
+    /**
+      inject: ['data1', 'data2']
+
+      normalized = {
+        data1: {
+          from: 'data1'
+        },
+        data2: {
+          from: 'data2'
+        }
+      }
+    */
     for (let i = 0; i < inject.length; i++) {
       normalized[inject[i]] = { from: inject[i] }
     }
   } else if (isPlainObject(inject)) {
+    // DY: inject使用对象接收
+    /**
+      let data1 = 'data1'
+      inject: {
+        data1,
+        d2: 'data2',
+        data3: { someProperty: 'someValue' }
+      }
+
+      normalized = {
+        data1: { from: 'data1' },
+        d2: { from: 'data2' },
+        data3: { from: 'data3', someProperty: 'someValue' }
+      }
+    */
     for (const key in inject) {
       const val = inject[key]
       normalized[key] = isPlainObject(val)
@@ -362,6 +426,36 @@ function normalizeInject (options: Object, vm: ?Component) {
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
   if (dirs) {
+
+    // DY: directives有对象和函数的写法，在这里统一处理成对象的形式
+    /**
+      directives: {
+        test1: {
+          bind: function () {
+            console.log('v-test1')
+          }
+        },
+        test2: function () {
+          console.log('v-test2')
+        }
+      }
+
+      directives: {
+        test1: {
+          bind: function () {
+            console.log('v-test1')
+          }
+        },
+        test2: {
+          bind: function () {
+            console.log('v-test2')
+          },
+          update: function () {
+            console.log('v-test2')
+          }
+        }
+      }
+    */
     for (const key in dirs) {
       const def = dirs[key]
       if (typeof def === 'function') {
@@ -390,7 +484,31 @@ export function mergeOptions (
   child: Object,
   vm?: Component
 ): Object {
+  /**
+    parent = {
+      components: {
+        KeepAlive
+        Transition,
+          TransitionGroup
+      },
+      directives:{
+          model,
+            show
+      },
+      filters: Object.create(null),
+      _base: Vue
+    }
+
+    child = {
+      el: '#app',
+      data: {
+        test: 1
+      }
+    }
+   */
+
   if (process.env.NODE_ENV !== 'production') {
+    // DY: 校验传进来的组件是否合规
     checkComponents(child)
   }
 
@@ -398,14 +516,21 @@ export function mergeOptions (
     child = child.options
   }
 
+  // DY: 规范化 props
   normalizeProps(child, vm)
+
+  // DY: 规范化 inject
   normalizeInject(child, vm)
+
+  // DY: 规范化 directives
   normalizeDirectives(child)
 
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
+  
+  // DY: 如果不是Vue.extend生成的子类，才会合并extends和mixin
   if (!child._base) {
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)
