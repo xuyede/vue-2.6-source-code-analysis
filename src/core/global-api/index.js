@@ -19,6 +19,8 @@ import {
 } from '../util/index'
 
 export function initGlobalAPI (Vue: GlobalAPI) {
+
+  // DY: 在Vue上添加 config 属性，只读
   // config
   const configDef = {}
   configDef.get = () => config
@@ -46,7 +48,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.nextTick = nextTick
 
   // 2.6 explicit observable API
-  Vue.observable = <T>(obj: T): T => {
+  Vue.observable = (obj: T): T => {
     observe(obj)
     return obj
   }
@@ -62,8 +64,27 @@ export function initGlobalAPI (Vue: GlobalAPI) {
 
   extend(Vue.options.components, builtInComponents)
 
+  // DY: 到这里后，Vue.options变成了
+  /**
+    Vue.options = {
+      components: {
+        KeepAlive
+      },
+      directives: Object.create(null),
+      filters: Object.create(null),
+      _base: Vue
+    }
+  */
+
+  // DY: Vue.use
   initUse(Vue)
+
+  // DY: Vue.mixin
   initMixin(Vue)
+
+  // DY: Vue.extend
   initExtend(Vue)
+
+  // DY: Vue.component、Vue.directive、Vue.filter
   initAssetRegisters(Vue)
 }

@@ -15,6 +15,7 @@ function Vue (options) {
   this._init(options)
 }
 
+// DY: 对Vue的原型包装
 initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)
