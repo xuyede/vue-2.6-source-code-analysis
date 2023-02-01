@@ -9,4 +9,10 @@
 链接：[Vue的不同构建输出](https://www.yuque.com/u1985615/zczu83/pghqa5#Ywswh)
 
 ### Vue构造函数
-链接：[Vue构造函数的位置](https://www.yuque.com/u1985615/zczu83/pghqa5#efZAz)
+
+#### Vue 构造函数的原型初始化
+链接：[Vue 构造函数的原型初始化](https://www.yuque.com/u1985615/zczu83/pghqa5#aKTnt)
+
+#### Vue 构造函数的静态属性和方法（全局API）
+链接：[Vue 构造函数的静态属性和方法（全局API）](https://www.yuque.com/u1985615/zczu83/pghqa5#z6hdq)
+

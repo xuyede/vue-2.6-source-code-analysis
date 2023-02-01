@@ -20,6 +20,7 @@ import platformDirectives from './directives/index'
 import platformComponents from './components/index'
 
 // install platform specific utils
+// DY: 根据不同平台，覆盖默认的config属性
 Vue.config.mustUseProp = mustUseProp
 Vue.config.isReservedTag = isReservedTag
 Vue.config.isReservedAttr = isReservedAttr
@@ -29,6 +30,23 @@ Vue.config.isUnknownElement = isUnknownElement
 // install platform runtime directives & components
 extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
+
+// DY: 经过上面的extend处理后，目前的Vue.options变成了
+/**
+  Vue.options = {
+    components: {
+      KeepAlive,
+      Transition,
+      TransitionGroup
+    },
+    directives: {
+      model,
+      show
+    },
+    filters: Object.create(null),
+    _base: Vue
+  }
+*/
 
 // install platform patch function
 Vue.prototype.__patch__ = inBrowser ? patch : noop
@@ -42,6 +60,7 @@ Vue.prototype.$mount = function (
   return mountComponent(this, el, hydrating)
 }
 
+// DY: 初始化devtools
 // devtools global hook
 /* istanbul ignore next */
 if (inBrowser) {
