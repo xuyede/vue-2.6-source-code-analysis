@@ -18,8 +18,11 @@ export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
     // a uid
+    // DY: 每次实例化一个Vue实例，uid自增
     vm._uid = uid++
 
+    // DY: 性能检测 - 开始
+    // DY: 追踪四个场景：组件初始化（component init）、编译（compile）、渲染（render）、打补丁（patch）
     let startTag, endTag
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -31,18 +34,26 @@ export function initMixin (Vue: Class<Component>) {
     // a flag to avoid this being observed
     vm._isVue = true
     // merge options
-    if (options && options._isComponent) {
-      // optimize internal component instantiation
-      // since dynamic options merging is pretty slow, and none of the
-      // internal component options needs special treatment.
-      initInternalComponent(vm, options)
-    } else {
-      vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
-        options || {},
-        vm
-      )
-    }
+    // if (options && options._isComponent) {
+    //   // optimize internal component instantiation
+    //   // since dynamic options merging is pretty slow, and none of the
+    //   // internal component options needs special treatment.
+    //   initInternalComponent(vm, options)
+    // } else {
+    //   vm.$options = mergeOptions(
+    //     resolveConstructorOptions(vm.constructor),
+    //     options || {},
+    //     vm
+    //   )
+    // }
+
+    // DY: 通过mergeOptions生成 $options，用于下面一系列的初始化
+    vm.$options = mergeOptions(
+      resolveConstructorOptions(vm.constructor),
+      options || {},
+      vm
+    )
+
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
@@ -60,6 +71,7 @@ export function initMixin (Vue: Class<Component>) {
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
 
+    // DY: 性能检测 - 结束
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false)
