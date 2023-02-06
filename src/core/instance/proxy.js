@@ -53,6 +53,13 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   const hasHandler = {
+    // DY: has可以拦截以下操作
+    /**
+      1. 属性查询: foo in proxy
+      2. 继承属性查询: foo in Object.create(proxy)
+      3. with 检查: with(proxy) { (foo); }
+      4. Reflect.has()
+    */
     has (target, key) {
       const has = key in target
       const isAllowed = allowedGlobals(key) ||
@@ -66,6 +73,7 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   const getHandler = {
+    // DY: 没有with包裹的render，使用vm['a'] 或 vm.a 的形式访问的，使用get去拦截访问
     get (target, key) {
       if (typeof key === 'string' && !(key in target)) {
         if (key in target.$data) warnReservedPrefix(target, key)
@@ -75,10 +83,15 @@ if (process.env.NODE_ENV !== 'production') {
     }
   }
 
+  // DY: 在vm上添加 _renderProxy, _renderProxy 作为render函数执行的作用域
+  // core/instance/render.js：vnode = render.call(vm._renderProxy, vm.$createElement)
+  // render函数就是一个with包裹的处理函数
   initProxy = function initProxy (vm) {
     if (hasProxy) {
       // determine which proxy handler to use
       const options = vm.$options
+
+      // DY: _withStripped 字段是是使用 webpack + vue-loader，把模板编译为不使用 with
       const handlers = options.render && options.render._withStripped
         ? getHandler
         : hasHandler

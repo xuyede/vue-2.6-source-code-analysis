@@ -56,6 +56,7 @@ export function initMixin (Vue: Class<Component>) {
     )
 
     /* istanbul ignore else */
+    // DY: 拦截模板的属性访问
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
     } else {
