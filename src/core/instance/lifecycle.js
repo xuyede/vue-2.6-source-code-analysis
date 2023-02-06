@@ -34,13 +34,18 @@ export function initLifecycle (vm: Component) {
 
   // locate first non-abstract parent
   let parent = options.parent
+  // DY: 查找第一个非抽象的父组件
+  // 抽象组件不会渲染DOM至页面，如：keep-alive 或者 transition
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
+
+    // DY: 将当前实例添加到父实例的 $children 属性里
     parent.$children.push(vm)
   }
 
+  // DY: 设置当前实例的 $parent 指向父实例
   vm.$parent = parent
   vm.$root = parent ? parent.$root : vm
 
