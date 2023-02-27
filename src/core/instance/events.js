@@ -63,6 +63,8 @@ export function eventsMixin (Vue: Class<Component>) {
       (vm._events[event] || (vm._events[event] = [])).push(fn)
       // optimize hook:event cost by using a boolean flag marked at registration
       // instead of a hash lookup
+
+      // DY: 有绑定 hook:event 事件，在callHook时会执行
       if (hookRE.test(event)) {
         vm._hasHookEvent = true
       }

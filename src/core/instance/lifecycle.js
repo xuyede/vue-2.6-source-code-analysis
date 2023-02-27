@@ -351,6 +351,9 @@ export function callHook (vm: Component, hook: string) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
+
+  // DY: 在 src\core\instance\events.js 有绑定hooks:event
+  // DY: 如果有对应的 hook:hook 也会执行
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }

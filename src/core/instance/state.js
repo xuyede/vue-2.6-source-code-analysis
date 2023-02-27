@@ -47,8 +47,11 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 }
 
 export function initState (vm: Component) {
+
+  // DY: 存储当前实例所有的 watcher 对象
   vm._watchers = []
   const opts = vm.$options
+
   if (opts.props) initProps(vm, opts.props)
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
@@ -112,6 +115,8 @@ function initProps (vm: Component, propsOptions: Object) {
 
 function initData (vm: Component) {
   let data = vm.$options.data
+
+  // DY: 把data赋值给 vm._data
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
@@ -145,9 +150,14 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+
+      // DY: 通过this获取data的数据，实际上是获取 _data 的数据，
+      // DY: 如果是设置值，也是设置 _data 上的值
       proxy(vm, `_data`, key)
     }
   }
+
+  // DY: 开启响应式之路
   // observe data
   observe(data, true /* asRootData */)
 }
