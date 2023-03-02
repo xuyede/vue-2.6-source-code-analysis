@@ -110,6 +110,8 @@ function initProps (vm: Component, propsOptions: Object) {
       proxy(vm, `_props`, key)
     }
   }
+
+  // DY: 开启监听开关，下面的 initData就能监听响应
   toggleObserving(true)
 }
 

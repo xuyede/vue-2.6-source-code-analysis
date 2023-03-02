@@ -119,8 +119,12 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     !isServerRendering() &&
     (Array.isArray(value) || isPlainObject(value)) &&
     Object.isExtensible(value) &&
+
+    // DY: Vue实例不能检测
     !value._isVue
   ) {
+
+    // DY: 把数据变为响应式的
     ob = new Observer(value)
   }
   if (asRootData && ob) {
