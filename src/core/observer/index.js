@@ -45,6 +45,9 @@ export class Observer {
     // DY: 这个dep的收集框是整个处理对象的
     this.dep = new Dep()
     this.vmCount = 0
+
+    // DY: __ob__ 就是Observer实例，也就是 observer 的返回值
+    // 可以通过 value.__ob__ 获取observer 的返回值
     def(value, '__ob__', this)
 
     // DY: 经过上面的4行代码，传进来的对象会变为
@@ -158,6 +161,8 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 /**
  * Define a reactive property on an Object.
  */
+// DY: 将数据对象的数据属性转换为访问器属性
+// 即为数据对象的属性设置一对 getter/setter
 export function defineReactive (
   obj: Object,
   key: string,
@@ -165,6 +170,8 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
+
+  // DY: 这个dep收集框是对象里面某个属性的
   const dep = new Dep()
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
@@ -172,22 +179,43 @@ export function defineReactive (
     return
   }
 
+  // DY: 把对象已有的set/get缓存下来，在新的setter/getter中执行，达到不影响属性
+  // 原有的读写操作
   // cater for pre-defined getter/setters
   const getter = property && property.get
   const setter = property && property.set
+
+  // DY: 当属性拥有原本的 setter 时，即使拥有 getter 也要获取属性值并观测之
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
 
+  // DY: val不一定有值，所以 observe(val) 有可能返回 undefined | Observer实例（也就是val的__ob__属性）
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
+
+      // DY: Dep.target 保存的是要被收集的执行函数
       if (Dep.target) {
+
+        // DY: 把 Dep.target 收集到当前属性的框里
+        // 在当前属性的 set 中由 dep.notify 触发
         dep.depend()
         if (childOb) {
+
+          // DY: 把Dep.target 收集到当前属性的 __ob__ 的dep中
+          // 用途：vm.$set / Vue.set 时，手动触发当前属性收集的依赖
+          /**
+            Vue.set = function (obj, key, val) {
+              defineReactive(obj, key, val)
+              obj.__ob__.dep.notify()  // 相当于 data.a.__ob__.dep.notify()
+            }
+
+            Vue.set(data.a, 'c', 1)
+           */
           childOb.dep.depend()
           if (Array.isArray(value)) {
             dependArray(value)
@@ -199,6 +227,7 @@ export function defineReactive (
     set: function reactiveSetter (newVal) {
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
+      // DY: newVal !== newVal && value !== value 判断NaN
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
@@ -214,6 +243,8 @@ export function defineReactive (
         val = newVal
       }
       childOb = !shallow && observe(newVal)
+
+      // DY: 属性值更改，触发当前属性收集的依赖，更新视图
       dep.notify()
     }
   })
