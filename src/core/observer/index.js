@@ -41,9 +41,29 @@ export class Observer {
 
   constructor (value: any) {
     this.value = value
+
+    // DY: 这个dep的收集框是整个处理对象的
     this.dep = new Dep()
     this.vmCount = 0
     def(value, '__ob__', this)
+
+    // DY: 经过上面的4行代码，传进来的对象会变为
+    /**
+      const data = {
+        a: 1
+      }
+
+      const data = {
+        a: 1,
+
+        // __ob__ 为不可枚举属性
+        __ob__: {
+          value: data, // value 属性指向 data 数据对象本身，这是一个循环引用
+          dep: new Dep(), // dep实例对象
+          vmCount: 0
+        }
+      }
+     *  */    
     if (Array.isArray(value)) {
       if (hasProto) {
         protoAugment(value, arrayMethods)
@@ -64,6 +84,8 @@ export class Observer {
   walk (obj: Object) {
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
+
+      // DY: 把所有可枚举的属性分别用 defineReactive 处理
       defineReactive(obj, keys[i])
     }
   }
