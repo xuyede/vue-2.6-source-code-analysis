@@ -73,6 +73,8 @@ export class Observer {
       } else {
         copyAugment(value, arrayMethods, arrayKeys)
       }
+
+      // DY: 监听数组的每一项，为了使数组的元素为对象也能监听到
       this.observeArray(value)
     } else {
       this.walk(value)
