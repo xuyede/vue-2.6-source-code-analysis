@@ -57,6 +57,8 @@ const targetStack = []
 
 export function pushTarget (target: ?Watcher) {
   targetStack.push(target)
+
+  // DY: 保存着最新的观察者
   Dep.target = target
 }
 

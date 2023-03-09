@@ -24,6 +24,8 @@ let uid = 0
  * and fires callback when the expression value changes.
  * This is used for both the $watch() api and directives.
  */
+
+// DY: watcher的原理是通过对被观察的目标求值，触发数据属性的get，从而收集依赖
 export default class Watcher {
   vm: Component;
   expression: string;
@@ -44,39 +46,67 @@ export default class Watcher {
   value: any;
 
   constructor (
+    // DY: 当前的实例
     vm: Component,
+    // DY: 被观察的目标
     expOrFn: string | Function,
     cb: Function,
     options?: ?Object,
+    // DY: 是否为渲染函数的watcher（在 mountComponent 创建的）
     isRenderWatcher?: boolean
   ) {
+    // DY: 保存vm，指明这个观察者是属于哪一个组件的
     this.vm = vm
+
+    // DY: 如果是渲染函数的watcher，把当前watcher保存到 _watcher
     if (isRenderWatcher) {
       vm._watcher = this
     }
+
+    // DY: 属于该组件的观察者都会被添加到该组件的 _watchers 数组中
+    // 包括渲染函数的观察者和非渲染函数的观察者
     vm._watchers.push(this)
+
     // options
     if (options) {
+      // DY: 当前观察者是否是深度观测
       this.deep = !!options.deep
+
+      // DY: 当前观察者是开发者定义的还是框架定义的
+      // 除了内部定义的观察者(如：渲染函数的观察者、计算属性的观察者等)之外，所有观察者都被认为是开发者定义的
       this.user = !!options.user
+
+      // DY: 当前观察者是否是计算属性的观察者
       this.lazy = !!options.lazy
+
+      // DY: 当数据改变时，当前观察者是否同步求值并则执行回调
       this.sync = !!options.sync
+
+      // DY: 当数据变化后，触发更新前，执行的钩子函数
       this.before = options.before
     } else {
       this.deep = this.user = this.lazy = this.sync = false
     }
+
     this.cb = cb
     this.id = ++uid // uid for batching
+
+    // DY: 当前观察者是否激活
     this.active = true
     this.dirty = this.lazy // for lazy watchers
+
+    // DY: 用于实现避免重复收集依赖，且移除无用依赖
     this.deps = []
-    this.newDeps = []
     this.depIds = new Set()
+    this.newDeps = []
     this.newDepIds = new Set()
+
     this.expression = process.env.NODE_ENV !== 'production'
       ? expOrFn.toString()
       : ''
+
     // parse expression for getter
+    // DY: 处理完的 getter 始终为一个函数
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
@@ -91,6 +121,8 @@ export default class Watcher {
         )
       }
     }
+
+    // DY: 如果不是计算属性，直接求值
     this.value = this.lazy
       ? undefined
       : this.get()
