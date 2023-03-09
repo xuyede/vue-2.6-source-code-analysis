@@ -152,6 +152,8 @@ export function mountComponent (
 ): Component {
   vm.$el = el
   if (!vm.$options.render) {
+
+    // DY: 到了这里还没有render函数，默认给一个空的vnode
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
@@ -173,6 +175,8 @@ export function mountComponent (
   }
   callHook(vm, 'beforeMount')
 
+  // DY: 把渲染函数生成的虚拟DOM渲染成真正的DOM
+  // 数据改变 - 处理数据的set - 执行dep.notify - 执行updateComponent - 更新页面
   let updateComponent
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -194,13 +198,17 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
-      vm._update(vm._render(), hydrating)
+      // DY: 通过_render生成vnode
+      const vnode = vm._render();
+      // DY: 通过_update把vnode渲染成真正的DOM
+      vm._update(vnode, hydrating)
     }
   }
 
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // DY: 开启 watcher
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
