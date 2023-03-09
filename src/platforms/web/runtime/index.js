@@ -52,11 +52,14 @@ extend(Vue.options.components, platformComponents)
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
+// DY: 运行时的 $mount 处理（不需要模板编译）
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
   el = el && inBrowser ? query(el) : undefined
+
+  // DY: 执行mountComponent，需要提供render函数
   return mountComponent(this, el, hydrating)
 }
 
