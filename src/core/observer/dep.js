@@ -21,6 +21,8 @@ export default class Dep {
   }
 
   addSub (sub: Watcher) {
+
+    // DY: 把 watcher 收集到 subs 中
     this.subs.push(sub)
   }
 
@@ -30,6 +32,8 @@ export default class Dep {
 
   depend () {
     if (Dep.target) {
+
+      // DY: 执行 watcher 的 addDep
       Dep.target.addDep(this)
     }
   }
@@ -63,6 +67,8 @@ export function pushTarget (target: ?Watcher) {
 }
 
 export function popTarget () {
+  // DY: 去除队列尾部的 watcher
   targetStack.pop()
+  // DY: 把 target 设置成队列最后一个 watcher
   Dep.target = targetStack[targetStack.length - 1]
 }

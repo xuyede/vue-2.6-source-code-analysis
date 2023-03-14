@@ -95,11 +95,14 @@ export default class Watcher {
     this.active = true
     this.dirty = this.lazy // for lazy watchers
 
-    // DY: 用于实现避免重复收集依赖，且移除无用依赖
-    this.deps = []
-    this.depIds = new Set()
+    // DY: 存储的总是当次求值所收集到的 Dep 实例对象
     this.newDeps = []
     this.newDepIds = new Set()
+
+    // DY: 存储的总是上一次求值过程中所收集到的 Dep 实例对象
+    this.deps = []
+    this.depIds = new Set()
+    
 
     this.expression = process.env.NODE_ENV !== 'production'
       ? expOrFn.toString()
@@ -131,11 +134,16 @@ export default class Watcher {
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
+  // DY: 求值，触发get
   get () {
+
+    // DY: 把当前的 watcher 给到 dep.target
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // DY: 执行getter，触发里面使用数据的get
+      // 这一步过后，getter绑定的数据的 dep 已经收集到了当前 watcher
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -149,9 +157,15 @@ export default class Watcher {
       if (this.deep) {
         traverse(value)
       }
+
+      // DY: 把当前 watcher 从 dep.target 移除
       popTarget()
+
+      // DY: 每次求值完后，处理当前 watcher 和 dep的依赖
       this.cleanupDeps()
     }
+
+    // DY: 返回被观察目标的值给到 this.value
     return value
   }
 
@@ -160,10 +174,18 @@ export default class Watcher {
    */
   addDep (dep: Dep) {
     const id = dep.id
+
+    // DY: 一次求值中，读取多个相同的数据，使用 newDepIds 避免收集重复依赖
     if (!this.newDepIds.has(id)) {
+
+      // DY: 如果当前watcher没有被收集过，保存id和dep实例
       this.newDepIds.add(id)
       this.newDeps.push(dep)
+
+      // DY: 当数据变化时，重新求值的时候，使用 depIds 避免收集重复依赖
       if (!this.depIds.has(id)) {
+
+        // DY: 把当前 watcher 收集到dep中
         dep.addSub(this)
       }
     }
@@ -172,21 +194,36 @@ export default class Watcher {
   /**
    * Clean up for dependency collection.
    */
+  // DY: 把newDepIds赋值给depIds，把newDeps赋值给deps
   cleanupDeps () {
     let i = this.deps.length
     while (i--) {
+      // DY: 当前 watcher 的上一次求值收集的 dep
       const dep = this.deps[i]
+
+      // DY: 如果当前watcher上一次求值收集的 dep 不在当次求值收集的 dep 列表中
+      // 移除掉
       if (!this.newDepIds.has(dep.id)) {
         dep.removeSub(this)
       }
     }
+
+    // DY: 保存depIds的副本
     let tmp = this.depIds
+    // DY: 把newDepIds赋值给depIds
     this.depIds = this.newDepIds
+    // DY: 把depIds的副本赋值给newDepIds
     this.newDepIds = tmp
+    // DY: 清空newDepIds
     this.newDepIds.clear()
+
+    // DY: 保存deps的副本
     tmp = this.deps
+    // DY: 把newDeps赋值给deps
     this.deps = this.newDeps
+    // DY: 把deps的副本赋值给newDeps
     this.newDeps = tmp
+    // DY: 清空newDeps
     this.newDeps.length = 0
   }
 
