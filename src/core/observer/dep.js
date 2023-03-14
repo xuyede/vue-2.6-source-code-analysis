@@ -47,6 +47,8 @@ export default class Dep {
       // order
       subs.sort((a, b) => a.id - b.id)
     }
+
+    // DY: 执行当前dep收集的 watcher 的 update 方法
     for (let i = 0, l = subs.length; i < l; i++) {
       subs[i].update()
     }

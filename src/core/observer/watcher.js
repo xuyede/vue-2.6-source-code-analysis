@@ -248,7 +248,11 @@ export default class Watcher {
    */
   run () {
     if (this.active) {
+
+      // DY: 重新求值（对于渲染函数的watcher来说，等价于重新执行渲染函数）
       const value = this.get()
+
+      // DY: 对于渲染函数的watcher来说, get返回的值永远是 undefined，不会执行if里面的内容
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
@@ -260,10 +264,14 @@ export default class Watcher {
         // set new value
         const oldValue = this.value
         this.value = value
+
+        // DY: 通过 watch 选项 或 $watch 函数定义的观察者
         if (this.user) {
           const info = `callback for watcher "${this.expression}"`
           invokeWithErrorHandling(this.cb, this.vm, [value, oldValue], this.vm, info)
         } else {
+
+          // DY: 执行watcher的回调函数，给出新旧值
           this.cb.call(this.vm, value, oldValue)
         }
       }
