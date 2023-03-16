@@ -372,14 +372,20 @@ export function stateMixin (Vue: Class<Component>) {
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}
+
+    // DY: 标识为用户创建的 watcher
     options.user = true
     const watcher = new Watcher(vm, expOrFn, cb, options)
+
+    // DY: 立即执行 cb（正常来说，cb只有在数据notify的时候才会执行）
     if (options.immediate) {
       const info = `callback for immediate watcher "${watcher.expression}"`
       pushTarget()
       invokeWithErrorHandling(cb, vm, [watcher.value], vm, info)
       popTarget()
     }
+
+    // DY: 可以手动停止 watcher
     return function unwatchFn () {
       watcher.teardown()
     }

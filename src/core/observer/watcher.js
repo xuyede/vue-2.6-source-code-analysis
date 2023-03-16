@@ -305,9 +305,13 @@ export default class Watcher {
       // remove self from vm's watcher list
       // this is a somewhat expensive operation so we skip it
       // if the vm is being destroyed.
+
+      // DY: 如果组件还没有销毁，就把当前 watcher 从组件的 _watchers 中删除
       if (!this.vm._isBeingDestroyed) {
         remove(this.vm._watchers, this)
       }
+
+      // DY: 将当前观察者实例对象从所有的 Dep 实例对象中移除
       let i = this.deps.length
       while (i--) {
         this.deps[i].removeSub(this)
