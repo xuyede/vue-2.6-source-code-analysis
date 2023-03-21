@@ -154,6 +154,8 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      
+      // DY: 递归读取被观察属性的所有子属性，触发子属性的getter，收集当前watcher
       if (this.deep) {
         traverse(value)
       }
