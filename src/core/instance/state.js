@@ -181,6 +181,7 @@ const computedWatcherOptions = { lazy: true }
 
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
+  // DY: 给当前组件的 vm._computedWatchers 设置成一个对象
   const watchers = vm._computedWatchers = Object.create(null)
   // computed properties are just getters during SSR
   const isSSR = isServerRendering()
@@ -197,6 +198,7 @@ function initComputed (vm: Component, computed: Object) {
 
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // DY: 创建一个watcher，并给到 watchers 和 vm._computedWatchers
       watchers[key] = new Watcher(
         vm,
         getter || noop,
@@ -228,8 +230,20 @@ export function defineComputed (
   userDef: Object | Function
 ) {
   const shouldCache = !isServerRendering()
+
+  // DY: 无论是函数还是对象，都会变成
+  /**
+    sharedPropertyDefinition = {
+      enumerable: true,
+      configurable: true,
+      get: createComputedGetter(key),
+      set: userDef.set // 或 noop
+    }
+   */
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = shouldCache
+
+      // DY: 浏览器走这里
       ? createComputedGetter(key)
       : createGetterInvoker(userDef)
     sharedPropertyDefinition.set = noop
@@ -241,6 +255,8 @@ export function defineComputed (
       : noop
     sharedPropertyDefinition.set = userDef.set || noop
   }
+
+  // DY: computed不支持修改
   if (process.env.NODE_ENV !== 'production' &&
       sharedPropertyDefinition.set === noop) {
     sharedPropertyDefinition.set = function () {
@@ -250,19 +266,31 @@ export function defineComputed (
       )
     }
   }
+
+  // DY: 在当前组件实例vm上定义和computed key同名访问器
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
 function createComputedGetter (key) {
+
+  // DY: 模板编译成渲染函数，渲染函数执行会触发计算属性的get，也就是下面的函数
   return function computedGetter () {
+
+    // DY: 拿到当前 key的 watcher
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+
+      // DY: 如果dirty为true，说明 watcher的value不是最新的，执行evaluate更新value值
       if (watcher.dirty) {
         watcher.evaluate()
       }
+
+      // DY: 这个 Dep.target 是渲染函数的 watcher
       if (Dep.target) {
         watcher.depend()
       }
+
+      // DY: 返回watcher的value，即 computed 对应属性值得执行结果
       return watcher.value
     }
   }

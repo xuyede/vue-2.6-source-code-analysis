@@ -235,6 +235,7 @@ export default class Watcher {
    */
   update () {
     /* istanbul ignore else */
+    // DY: 如果是惰性的watcher，把dirty设置为true，标记当前watcher的value不是最新的
     if (this.lazy) {
       this.dirty = true
     } else if (this.sync) {
