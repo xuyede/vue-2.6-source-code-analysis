@@ -24,8 +24,12 @@ export function validateProp (
   propsData: Object,
   vm?: Component
 ): any {
+
+  // DY: 获取对应key的prop
   const prop = propOptions[key]
   const absent = !hasOwn(propsData, key)
+
+  // DY: 获取一下外面传进来的prop有没有key的值
   let value = propsData[key]
   // boolean casting
   const booleanIndex = getTypeIndex(Boolean, prop.type)
@@ -42,12 +46,15 @@ export function validateProp (
     }
   }
   // check default value
+  // DY: 如果外面没有传对应的prop，就是用定义的default值作为value
   if (value === undefined) {
     value = getPropDefaultValue(vm, prop, key)
     // since the default value is a fresh copy,
     // make sure to observe it.
     const prevShouldObserve = shouldObserve
     toggleObserving(true)
+
+    // DY: 监听prop值
     observe(value)
     toggleObserving(prevShouldObserve)
   }

@@ -66,6 +66,16 @@ export function initState (vm: Component) {
 }
 
 function initProps (vm: Component, propsOptions: Object) {
+
+  // DY: 外面传进当前组件的属性
+  /**
+    <some-comp prop1="1" prop2="2" />
+
+    vm.$options.propsData = {
+      prop1: '1',
+      prop2: '2'
+    }
+   */
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array
@@ -73,12 +83,18 @@ function initProps (vm: Component, propsOptions: Object) {
   const keys = vm.$options._propKeys = []
   const isRoot = !vm.$parent
   // root instance props should be converted
+  // DY: 如果不是根组件，关闭响应监听
   if (!isRoot) {
     toggleObserving(false)
   }
   for (const key in propsOptions) {
+
+    // DY: 获取props的key，并放入vm.$options._propKeys中
     keys.push(key)
+
+    // DY: 用来校验 prop 数据是否符合预期的类型，并返回相应 prop 的值(或默认值)
     const value = validateProp(key, propsOptions, propsData, vm)
+    
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
       const hyphenatedKey = hyphenate(key)
